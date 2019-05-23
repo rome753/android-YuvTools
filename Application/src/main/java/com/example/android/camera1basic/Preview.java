@@ -1,15 +1,22 @@
 package com.example.android.camera1basic;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,7 +25,7 @@ import java.util.List;
  * to the surface. We need to center the SurfaceView because not all devices have cameras that
  * support preview sizes at the same aspect ratio as the device's display.
  */
-public class Preview extends ViewGroup implements SurfaceHolder.Callback {
+public class Preview extends FrameLayout implements SurfaceHolder.Callback, Camera.PreviewCallback {
     private final String TAG = "Preview";
 
     SurfaceView mSurfaceView;
@@ -26,6 +33,9 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     Size mPreviewSize;
     List<Size> mSupportedPreviewSizes;
     Camera mCamera;
+
+    ImageView mImageView;
+
 
     Preview(Context context) {
         super(context);
@@ -38,6 +48,10 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    }
+
+    public void setmImage(ImageView image) {
+        this.mImageView = image;
     }
 
     public void setCamera(Camera camera) {
@@ -119,6 +133,7 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
     public void surfaceDestroyed(SurfaceHolder holder) {
         // Surface will be destroyed when we return, so stop the preview.
         if (mCamera != null) {
+            mCamera.setPreviewCallback(null);
             mCamera.stopPreview();
         }
     }
@@ -165,7 +180,38 @@ public class Preview extends ViewGroup implements SurfaceHolder.Callback {
         requestLayout();
 
         mCamera.setParameters(parameters);
+        mCamera.setPreviewCallback(this);
         mCamera.startPreview();
     }
 
+    @Override
+    public void onPreviewFrame(final byte[] data, Camera camera) {
+        new Thread(){
+            @Override
+            public void run() {
+                final Bitmap bitmap = getBitmap(data);
+                mImageView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(bitmap != null) {
+                            mImageView.setImageBitmap(bitmap);
+                        }
+                    }
+                });
+            }
+        }.start();
+    }
+
+    private Bitmap getBitmap(byte[] data) {
+        Size size = mCamera.getParameters().getPreviewSize(); //获取预览大小
+        final int w = size.width;
+        final int h = size.height;
+        final YuvImage image = new YuvImage(data, ImageFormat.NV21, w, h, null);
+        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
+        if(!image.compressToJpeg(new Rect(0, 0, w, h), 100, os)){
+            return null;
+        }
+        byte[] tmp = os.toByteArray();
+        return BitmapFactory.decodeByteArray(tmp, 0,tmp.length);
+    }
 }

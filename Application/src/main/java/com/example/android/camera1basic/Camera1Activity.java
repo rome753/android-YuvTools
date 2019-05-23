@@ -17,12 +17,16 @@
 package com.example.android.camera1basic;
 
 import android.app.AlertDialog;
+import android.content.res.Resources;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 // Need the following import to get access to the app resources, since this
 // class is in a sub-package.
@@ -51,6 +55,9 @@ public class Camera1Activity extends AppCompatActivity {
         mPreview = new Preview(this);
         setContentView(mPreview);
 
+        ImageView image = addImage();
+        mPreview.setmImage(image);
+
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
 
@@ -62,6 +69,7 @@ public class Camera1Activity extends AppCompatActivity {
                     defaultCameraId = i;
                 }
             }
+
     }
 
     @Override
@@ -116,6 +124,15 @@ public class Camera1Activity extends AppCompatActivity {
 
         // Start the preview
         mCamera.startPreview();
+    }
+
+    private ImageView addImage() {
+        float density = Resources.getSystem().getDisplayMetrics().density;
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams((int)(200 * density), (int)(300 * density));
+        ImageView image = new ImageView(this);
+        image.setLayoutParams(params);
+        ((ViewGroup)(getWindow().findViewById(android.R.id.content))).addView(image);
+        return image;
     }
 }
 
