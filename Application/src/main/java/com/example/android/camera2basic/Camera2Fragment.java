@@ -1,4 +1,4 @@
-package cc.rome753.yuvtools;
+package com.example.android.camera2basic;
 
 import android.graphics.Bitmap;
 import android.media.Image;
@@ -6,9 +6,6 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-
-import com.example.android.camera2basic.Camera2BasicFragment;
-import com.example.android.camera2basic.R;
 
 import java.nio.ByteBuffer;
 

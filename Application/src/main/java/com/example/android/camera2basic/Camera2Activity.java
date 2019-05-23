@@ -19,9 +19,7 @@ package com.example.android.camera2basic;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import cc.rome753.yuvtools.Camera2Fragment;
-
-public class CameraActivity extends AppCompatActivity {
+public class Camera2Activity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
