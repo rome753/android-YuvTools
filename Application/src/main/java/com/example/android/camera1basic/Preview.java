@@ -2,11 +2,7 @@ package com.example.android.camera1basic;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -16,9 +12,10 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+
+import cc.rome753.yuvtools.Tools;
 
 /**
  * A simple wrapper around a Camera and a SurfaceView that renders a centered preview of the Camera
@@ -189,7 +186,11 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
         new Thread(){
             @Override
             public void run() {
-                final Bitmap bitmap = getBitmap(data);
+                if(mCamera == null) return;
+                Size size = mCamera.getParameters().getPreviewSize(); //获取预览大小
+                final int w = size.width;
+                final int h = size.height;
+                final Bitmap bitmap = Tools.getBitmapFromYUVBytes(data, w, h);
                 mImageView.post(new Runnable() {
                     @Override
                     public void run() {
@@ -200,18 +201,5 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
                 });
             }
         }.start();
-    }
-
-    private Bitmap getBitmap(byte[] data) {
-        Size size = mCamera.getParameters().getPreviewSize(); //获取预览大小
-        final int w = size.width;
-        final int h = size.height;
-        final YuvImage image = new YuvImage(data, ImageFormat.NV21, w, h, null);
-        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
-        if(!image.compressToJpeg(new Rect(0, 0, w, h), 100, os)){
-            return null;
-        }
-        byte[] tmp = os.toByteArray();
-        return BitmapFactory.decodeByteArray(tmp, 0,tmp.length);
     }
 }

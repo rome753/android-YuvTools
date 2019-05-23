@@ -90,6 +90,7 @@ public class Camera1Activity extends AppCompatActivity {
         // important to release it when the activity is paused.
         if (mCamera != null) {
             mPreview.setCamera(null);
+            mCamera.setPreviewCallback(null);
             mCamera.release();
             mCamera = null;
         }
@@ -110,6 +111,7 @@ public class Camera1Activity extends AppCompatActivity {
         if (mCamera != null) {
             mCamera.stopPreview();
             mPreview.setCamera(null);
+            mCamera.setPreviewCallback(null);
             mCamera.release();
             mCamera = null;
         }
