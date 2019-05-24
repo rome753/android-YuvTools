@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
@@ -55,18 +56,22 @@ public class YUVDetectView extends FrameLayout {
         new Thread() {
             @Override
             public void run() {
+                long time = System.currentTimeMillis();
+
                 byte[] b = new byte[data.length];
-                YUVTools.i420ToNv21(data, b, w, h);
+                YUVTools.i420ToNv21cpp(data, b, w, h);
                 final Bitmap b0 = YUVTools.nv21ToBitmap(b, w, h);
 
-                YUVTools.yv12ToNv21(data, b, w, h);
+                YUVTools.yv12ToNv21cpp(data, b, w, h);
                 final Bitmap b1 = YUVTools.nv21ToBitmap(b, w, h);
 
-                YUVTools.nv12ToNv21(data, b, w, h);
+                YUVTools.nv12ToNv21cpp(data, b, w, h);
                 final Bitmap b2 = YUVTools.nv21ToBitmap(b, w, h);
 
                 final Bitmap b3 = YUVTools.nv21ToBitmap(data, w, h);
 
+                time = System.currentTimeMillis() - time;
+                Log.d("YUVDetectView", "convert time: " + time);
                 post(new Runnable() {
                     @Override
                     public void run() {

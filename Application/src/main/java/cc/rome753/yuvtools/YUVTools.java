@@ -146,4 +146,12 @@ public class YUVTools {
         }
         return null;
     }
+
+    static {
+        System.loadLibrary("yuv420");
+    }
+
+    public static native void i420ToNv21cpp(byte[] src, byte[] dest, int width, int height);
+    public static native void yv12ToNv21cpp(byte[] src, byte[] dest, int width, int height);
+    public static native void nv12ToNv21cpp(byte[] src, byte[] dest, int width, int height);
 }
