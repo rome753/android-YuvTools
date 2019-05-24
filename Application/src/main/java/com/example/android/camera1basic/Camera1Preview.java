@@ -1,8 +1,8 @@
 package com.example.android.camera1basic;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
@@ -10,19 +10,18 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 
 import java.io.IOException;
 import java.util.List;
 
-import cc.rome753.yuvtools.Tools;
+import cc.rome753.yuvtools.YUVDetectView;
 
 /**
  * A simple wrapper around a Camera and a SurfaceView that renders a centered preview of the Camera
  * to the surface. We need to center the SurfaceView because not all devices have cameras that
  * support preview sizes at the same aspect ratio as the device's display.
  */
-public class Preview extends FrameLayout implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callback, Camera.PreviewCallback {
     private final String TAG = "Preview";
 
     SurfaceView mSurfaceView;
@@ -31,10 +30,10 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
     List<Size> mSupportedPreviewSizes;
     Camera mCamera;
 
-    ImageView mImageView;
+    YUVDetectView ydv;
 
 
-    Preview(Context context) {
+    Camera1Preview(Context context) {
         super(context);
         setBackgroundColor(Color.BLACK);
         mSurfaceView = new SurfaceView(context);
@@ -47,8 +46,8 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    public void setmImage(ImageView image) {
-        this.mImageView = image;
+    public void setImage(YUVDetectView yuvDetectView) {
+        this.ydv = yuvDetectView;
     }
 
     public void setCamera(Camera camera) {
@@ -84,6 +83,8 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
 
         if (mSupportedPreviewSizes != null) {
             mPreviewSize = getOptimalPreviewSize(mSupportedPreviewSizes, width, height);
+            mPreviewSize.width = 640;
+            mPreviewSize.height = 480;
         }
     }
 
@@ -174,6 +175,7 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
         // the preview.
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        parameters.setPreviewFormat(ImageFormat.YV12);
         requestLayout();
 
         mCamera.setParameters(parameters);
@@ -183,23 +185,10 @@ public class Preview extends FrameLayout implements SurfaceHolder.Callback, Came
 
     @Override
     public void onPreviewFrame(final byte[] data, Camera camera) {
-        new Thread(){
-            @Override
-            public void run() {
-                if(mCamera == null) return;
-                Size size = mCamera.getParameters().getPreviewSize(); //获取预览大小
-                final int w = size.width;
-                final int h = size.height;
-                final Bitmap bitmap = Tools.getBitmapFromYUVBytes(data, w, h);
-                mImageView.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(bitmap != null) {
-                            mImageView.setImageBitmap(bitmap);
-                        }
-                    }
-                });
-            }
-        }.start();
+        if(mCamera == null) return;
+        Size size = mCamera.getParameters().getPreviewSize(); //获取预览大小
+        final int w = size.width;
+        final int h = size.height;
+        ydv.inputAsync(data, w, h);
     }
 }

@@ -11,10 +11,40 @@ import android.media.ImageReader;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
-public class Tools {
+public class YUVTools {
 
+    public static void i420ToNv21(byte[] src, byte[] dest, int w, int h) {
+        int pos = w * h;
+        int u = pos;
+        int v = pos + (pos >> 2);
+        System.arraycopy(src, 0, dest, 0, pos);
+        while(pos < src.length) {
+            dest[pos++] = src[v++];
+            dest[pos++] = src[u++];
+        }
+    }
 
-    public static Bitmap getBitmapFromYUVBytes(byte[] data, int w, int h) {
+    public static void yv12ToNv21(byte[] src, byte[] dest, int w, int h) {
+        int pos = w * h;
+        int v = pos;
+        int u = pos + (pos >> 2);
+        System.arraycopy(src, 0, dest, 0, pos);
+        while(pos < src.length) {
+            dest[pos++] = src[v++];
+            dest[pos++] = src[u++];
+        }
+    }
+
+    public static void nv12ToNv21(byte[] src, byte[] dest, int w, int h) {
+        int pos = w * h;
+        System.arraycopy(src, 0, dest, 0, pos);
+        for(; pos < src.length; pos += 2) {
+            dest[pos] = src[pos+1];
+            dest[pos+1] = src[pos];
+        }
+    }
+
+    public static Bitmap nv21ToBitmap(byte[] data, int w, int h) {
         final YuvImage image = new YuvImage(data, ImageFormat.NV21, w, h, null);
         ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
         if(!image.compressToJpeg(new Rect(0, 0, w, h), 100, os)){
@@ -25,7 +55,7 @@ public class Tools {
     }
 
 
-    public static int[] getRGBIntFromPlanes(Image.Plane[] planes, int height) {
+    public static int[] planesToColors(Image.Plane[] planes, int height) {
         ByteBuffer yPlane = planes[0].getBuffer();
         ByteBuffer uPlane = planes[1].getBuffer();
         ByteBuffer vPlane = planes[2].getBuffer();
@@ -85,11 +115,32 @@ public class Tools {
     }
 
 
-    public static Bitmap getBitmapFromImageReader(ImageReader reader) {
+//    public static Bitmap imageReaderToBitmap(ImageReader reader, int w, int h) {
+//        try (Image image = reader.acquireNextImage()) {
+//            Image.Plane[] planes = image.getPlanes();
+//            int[] rgb = planesToColors(planes, h);
+//            return Bitmap.createBitmap(rgb, w, h, Bitmap.Config.RGB_565);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+
+    public static Bitmap imageReaderToBitmap(ImageReader reader, int w, int h) {
         try (Image image = reader.acquireNextImage()) {
             Image.Plane[] planes = image.getPlanes();
-            int[] rgb = getRGBIntFromPlanes(planes, 480);
-            return Bitmap.createBitmap(rgb, 640, 480, Bitmap.Config.RGB_565);
+            ByteBuffer yPlane = planes[0].getBuffer();
+            ByteBuffer uPlane = planes[1].getBuffer();
+            ByteBuffer vPlane = planes[2].getBuffer();
+            int y = yPlane.remaining();
+            int u = uPlane.remaining();
+            int v = vPlane.remaining();
+            byte[] bytes = new byte[y + u + v];
+            yPlane.get(bytes, 0, y);
+            vPlane.get(bytes, y, v);
+            uPlane.get(bytes, y + v, u);
+//            bytes = yv12ToNv21(bytes, w, h);
+            return nv21ToBitmap(bytes, w, h);
         } catch (Exception e) {
             e.printStackTrace();
         }

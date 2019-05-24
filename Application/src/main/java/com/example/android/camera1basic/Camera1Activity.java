@@ -26,7 +26,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+
+import cc.rome753.yuvtools.YUVDetectView;
 
 // Need the following import to get access to the app resources, since this
 // class is in a sub-package.
@@ -34,7 +35,7 @@ import android.widget.ImageView;
 // ----------------------------------------------------------------------
 
 public class Camera1Activity extends AppCompatActivity {
-    private Preview mPreview;
+    private Camera1Preview mPreview;
     Camera mCamera;
     int numberOfCameras;
     int cameraCurrentlyLocked;
@@ -52,11 +53,10 @@ public class Camera1Activity extends AppCompatActivity {
 
         // Create a RelativeLayout container that will hold a SurfaceView,
         // and set it as the content of our activity.
-        mPreview = new Preview(this);
+        mPreview = new Camera1Preview(this);
         setContentView(mPreview);
 
-        ImageView image = addImage();
-        mPreview.setmImage(image);
+        mPreview.setImage(addImage());
 
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
@@ -128,10 +128,10 @@ public class Camera1Activity extends AppCompatActivity {
         mCamera.startPreview();
     }
 
-    private ImageView addImage() {
+    private YUVDetectView addImage() {
         float density = Resources.getSystem().getDisplayMetrics().density;
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams((int)(200 * density), (int)(300 * density));
-        ImageView image = new ImageView(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, (int)(100 * density));
+        YUVDetectView image = new YUVDetectView(this);
         image.setLayoutParams(params);
         ((ViewGroup)(getWindow().findViewById(android.R.id.content))).addView(image);
         return image;

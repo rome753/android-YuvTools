@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
-import cc.rome753.yuvtools.Tools;
+import cc.rome753.yuvtools.YUVTools;
 
 public class Camera2Fragment extends Camera2BasicFragment {
 
@@ -27,7 +27,7 @@ public class Camera2Fragment extends Camera2BasicFragment {
 
     @Override
     protected void handleImage(ImageReader reader) {
-        final Bitmap bitmap = Tools.getBitmapFromImageReader(reader);
+        final Bitmap bitmap = YUVTools.imageReaderToBitmap(reader, 640, 480);
         iv.post(new Runnable() {
             @Override
             public void run() {
