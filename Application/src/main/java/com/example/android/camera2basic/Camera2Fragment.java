@@ -6,11 +6,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import cc.rome753.yuvtools.YUVDetectView;
 import cc.rome753.yuvtools.YUVTools;
 
 public class Camera2Fragment extends Camera2BasicFragment {
 
-    private ImageView iv;
+    private YUVDetectView ydv;
 
     public static Camera2Fragment newInstance() {
         Bundle args = new Bundle();
@@ -22,18 +23,12 @@ public class Camera2Fragment extends Camera2BasicFragment {
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        iv = view.findViewById(R.id.iv);
+        ydv = view.findViewById(R.id.ydv);
     }
 
     @Override
     protected void handleImage(ImageReader reader) {
-        final Bitmap bitmap = YUVTools.imageReaderToBitmap(reader, 640, 480);
-        iv.post(new Runnable() {
-            @Override
-            public void run() {
-                iv.setImageBitmap(bitmap);
-            }
-        });
+        ydv.inputAsync(reader);
     }
 
 

@@ -47,11 +47,11 @@ public class YUVTools {
     public static Bitmap nv21ToBitmap(byte[] data, int w, int h) {
         final YuvImage image = new YuvImage(data, ImageFormat.NV21, w, h, null);
         ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
-        if(!image.compressToJpeg(new Rect(0, 0, w, h), 100, os)){
-            return null;
+        if(image.compressToJpeg(new Rect(0, 0, w, h), 100, os)){
+            byte[] tmp = os.toByteArray();
+            return BitmapFactory.decodeByteArray(tmp, 0, tmp.length);
         }
-        byte[] tmp = os.toByteArray();
-        return BitmapFactory.decodeByteArray(tmp, 0,tmp.length);
+        return null;
     }
 
 
@@ -114,37 +114,20 @@ public class YUVTools {
         return rgbBuffer;
     }
 
-
-//    public static Bitmap imageReaderToBitmap(ImageReader reader, int w, int h) {
-//        try (Image image = reader.acquireNextImage()) {
-//            Image.Plane[] planes = image.getPlanes();
-//            int[] rgb = planesToColors(planes, h);
-//            return Bitmap.createBitmap(rgb, w, h, Bitmap.Config.RGB_565);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
-
-    public static Bitmap imageReaderToBitmap(ImageReader reader, int w, int h) {
-        try (Image image = reader.acquireNextImage()) {
-            Image.Plane[] planes = image.getPlanes();
-            ByteBuffer yPlane = planes[0].getBuffer();
-            ByteBuffer uPlane = planes[1].getBuffer();
-            ByteBuffer vPlane = planes[2].getBuffer();
-            int y = yPlane.remaining();
-            int u = uPlane.remaining();
-            int v = vPlane.remaining();
-            byte[] bytes = new byte[y + u + v];
-            yPlane.get(bytes, 0, y);
-            vPlane.get(bytes, y, v);
-            uPlane.get(bytes, y + v, u);
-//            bytes = yv12ToNv21(bytes, w, h);
-            return nv21ToBitmap(bytes, w, h);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static byte[] getImageBytes(Image.Plane[] planes) {
+        int len = 0;
+        for(Image.Plane plane : planes) {
+            len += plane.getBuffer().remaining();
         }
-        return null;
+        byte[] bytes = new byte[len];
+        int off = 0;
+        for(Image.Plane plane : planes) {
+            ByteBuffer buffer = plane.getBuffer();
+            int remain = buffer.remaining();
+            buffer.get(bytes, off, remain);
+            off += remain;
+        }
+        return bytes;
     }
 
     static {
