@@ -512,6 +512,11 @@ public class Camera2BasicFragment extends Fragment
                     continue;
                 }
 
+                int[] outputFormats = map.getOutputFormats();
+                for(int i : outputFormats) {
+                    Log.d("chao", "supportOutputFormats 0x" + Integer.toHexString(i));
+                }
+
                 // For still image captures, we use the largest available size.
                 Size largest = Collections.max(
                         Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)),

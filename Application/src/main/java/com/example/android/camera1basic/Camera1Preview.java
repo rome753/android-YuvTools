@@ -175,6 +175,10 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
         // the preview.
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+        List<Integer> supportedPreviewFormats = parameters.getSupportedPreviewFormats();
+        for(int i : supportedPreviewFormats) {
+            Log.d("chao", "supportedPreviewFormats 0x" + Integer.toHexString(i));
+        }
         parameters.setPreviewFormat(ImageFormat.YV12);
         requestLayout();
 

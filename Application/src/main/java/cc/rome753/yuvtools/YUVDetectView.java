@@ -55,9 +55,6 @@ public class YUVDetectView extends FrameLayout {
             @Override
             public void onClick(View v) {
                 rotation = (rotation + 90) % 360;
-                for(View iv : ivs) {
-                    iv.setRotation(rotation);
-                }
             }
         });
     }
@@ -87,7 +84,7 @@ public class YUVDetectView extends FrameLayout {
         final int w = isFlip ? height : width;
         final int h = isFlip ? width : height;
 
-        if(isShowing) return;
+        if (isShowing) return;
         isShowing = true;
         new Thread() {
             @Override
@@ -100,29 +97,37 @@ public class YUVDetectView extends FrameLayout {
     private void displayImage(byte[] data, int w, int h) {
         long time = System.currentTimeMillis();
 
-        byte[] b = new byte[data.length];
-        YUVTools.i420ToNv21cpp(data, b, w, h);
-        final Bitmap b0 = YUVTools.nv21ToBitmap(b, w, h);
+        byte[] nv21 = new byte[data.length];
+        byte[] rotated = rotation == 0 ? data : new byte[data.length];
 
-        YUVTools.yv12ToNv21cpp(data, b, w, h);
-        final Bitmap b1 = YUVTools.nv21ToBitmap(b, w, h);
+        YUVTools.rotateP(data, rotated, w, h, rotation);
+        YUVTools.i420ToNv21cpp(rotated, nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
+        final Bitmap b0 = YUVTools.nv21ToBitmap(nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
 
-        YUVTools.nv12ToNv21cpp(data, b, w, h);
-        final Bitmap b2 = YUVTools.nv21ToBitmap(b, w, h);
+        YUVTools.rotateP(data, rotated, w, h, rotation);
+        YUVTools.yv12ToNv21cpp(rotated, nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
+        final Bitmap b1 = YUVTools.nv21ToBitmap(nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
 
-        final Bitmap b3 = YUVTools.nv21ToBitmap(data, w, h);
+        YUVTools.rotateSP(data, rotated, w, h, rotation);
+        YUVTools.nv12ToNv21cpp(rotated, nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
+        final Bitmap b2 = YUVTools.nv21ToBitmap(nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
+
+        YUVTools.rotateSP(data, rotated, w, h, rotation);
+        nv21 = rotated;
+        final Bitmap b3 = YUVTools.nv21ToBitmap(nv21, rotation % 180 == 0 ? w : h, rotation % 180 == 0 ? h : w);
 
         time = System.currentTimeMillis() - time;
         Log.d("YUVDetectView", "convert time: " + time);
         post(new Runnable() {
             @Override
             public void run() {
-                if(b0 != null) ivs[0].setImageBitmap(b0);
-                if(b1 != null) ivs[1].setImageBitmap(b1);
-                if(b2 != null) ivs[2].setImageBitmap(b2);
-                if(b3 != null) ivs[3].setImageBitmap(b3);
+                if (b0 != null) ivs[0].setImageBitmap(b0);
+                if (b1 != null) ivs[1].setImageBitmap(b1);
+                if (b2 != null) ivs[2].setImageBitmap(b2);
+                if (b3 != null) ivs[3].setImageBitmap(b3);
                 isShowing = false;
             }
         });
     }
+
 }
