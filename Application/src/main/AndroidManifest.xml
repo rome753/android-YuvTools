@@ -25,8 +25,7 @@
         </activity>
         <activity
             android:name="com.example.android.camera1basic.Camera1Activity"
-            android:label="@string/app_name"
-            android:screenOrientation="landscape">
+            android:label="@string/app_name">
         </activity>
     </application>
 

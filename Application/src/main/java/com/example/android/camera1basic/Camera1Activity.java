@@ -17,15 +17,12 @@
 package com.example.android.camera1basic;
 
 import android.app.AlertDialog;
-import android.content.res.Resources;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.FrameLayout;
+
+import com.example.android.camera2basic.R;
 
 import cc.rome753.yuvtools.YUVDetectView;
 
@@ -34,8 +31,9 @@ import cc.rome753.yuvtools.YUVDetectView;
 
 // ----------------------------------------------------------------------
 
-public class Camera1Activity extends AppCompatActivity {
+public class Camera1Activity extends AppCompatActivity implements Camera.PreviewCallback {
     private Camera1Preview mPreview;
+    private YUVDetectView ydv;
     Camera mCamera;
     int numberOfCameras;
     int cameraCurrentlyLocked;
@@ -46,17 +44,16 @@ public class Camera1Activity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Hide the window title.
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        setContentView(R.layout.activity_camera1);
+//
+//        // Hide the window title.
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         // Create a RelativeLayout container that will hold a SurfaceView,
         // and set it as the content of our activity.
-        mPreview = new Camera1Preview(this);
-        setContentView(mPreview);
-
-        mPreview.setImage(addImage());
+        mPreview = findViewById(R.id.surface);
+        ydv = findViewById(R.id.ydv);
 
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
@@ -78,6 +75,8 @@ public class Camera1Activity extends AppCompatActivity {
 
         // Open the default i.e. the first rear facing camera.
         mCamera = Camera.open();
+        mCamera.setPreviewCallback(this);
+        mCamera.setDisplayOrientation(90);
         cameraCurrentlyLocked = defaultCameraId;
         mPreview.setCamera(mCamera);
     }
@@ -128,13 +127,13 @@ public class Camera1Activity extends AppCompatActivity {
         mCamera.startPreview();
     }
 
-    private YUVDetectView addImage() {
-        float density = Resources.getSystem().getDisplayMetrics().density;
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, (int)(100 * density));
-        YUVDetectView image = new YUVDetectView(this);
-        image.setLayoutParams(params);
-        ((ViewGroup)(getWindow().findViewById(android.R.id.content))).addView(image);
-        return image;
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        if(camera == null) return;
+        Camera.Size size = camera.getParameters().getPreviewSize(); //获取预览大小
+        final int w = size.width;
+        final int h = size.height;
+        ydv.inputAsync(data, w, h);
     }
 }
 

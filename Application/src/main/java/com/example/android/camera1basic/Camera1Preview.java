@@ -5,10 +5,15 @@ import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import java.io.IOException;
@@ -21,7 +26,7 @@ import cc.rome753.yuvtools.YUVDetectView;
  * to the surface. We need to center the SurfaceView because not all devices have cameras that
  * support preview sizes at the same aspect ratio as the device's display.
  */
-public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callback, Camera.PreviewCallback {
+public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callback {
     private final String TAG = "Preview";
 
     SurfaceView mSurfaceView;
@@ -30,11 +35,16 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
     List<Size> mSupportedPreviewSizes;
     Camera mCamera;
 
-    YUVDetectView ydv;
+    public Camera1Preview(Context context) {
+        this(context, null);
+    }
 
+    public Camera1Preview(@NonNull Context context, @Nullable AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
 
-    Camera1Preview(Context context) {
-        super(context);
+    public Camera1Preview(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
         setBackgroundColor(Color.BLACK);
         mSurfaceView = new SurfaceView(context);
         addView(mSurfaceView);
@@ -46,10 +56,6 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
-    public void setImage(YUVDetectView yuvDetectView) {
-        this.ydv = yuvDetectView;
-    }
-
     public void setCamera(Camera camera) {
         mCamera = camera;
         if (mCamera != null) {
@@ -59,17 +65,17 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
     }
 
     public void switchCamera(Camera camera) {
-       setCamera(camera);
-       try {
-           camera.setPreviewDisplay(mHolder);
-       } catch (IOException exception) {
-           Log.e(TAG, "IOException caused by setPreviewDisplay()", exception);
-       }
-       Camera.Parameters parameters = camera.getParameters();
-       parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
-       requestLayout();
-
-       camera.setParameters(parameters);
+//       setCamera(camera);
+//       try {
+//           camera.setPreviewDisplay(mHolder);
+//       } catch (IOException exception) {
+//           Log.e(TAG, "IOException caused by setPreviewDisplay()", exception);
+//       }
+//       Camera.Parameters parameters = camera.getParameters();
+//       parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
+//       requestLayout();
+//
+//       camera.setParameters(parameters);
     }
 
     @Override
@@ -99,8 +105,8 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
             int previewWidth = width;
             int previewHeight = height;
             if (mPreviewSize != null) {
-                previewWidth = mPreviewSize.width;
-                previewHeight = mPreviewSize.height;
+                previewWidth = mPreviewSize.height;
+                previewHeight = mPreviewSize.width;
             }
 
             // Center the child SurfaceView within the parent.
@@ -183,16 +189,7 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
         requestLayout();
 
         mCamera.setParameters(parameters);
-        mCamera.setPreviewCallback(this);
         mCamera.startPreview();
     }
 
-    @Override
-    public void onPreviewFrame(final byte[] data, Camera camera) {
-        if(mCamera == null) return;
-        Size size = mCamera.getParameters().getPreviewSize(); //获取预览大小
-        final int w = size.width;
-        final int h = size.height;
-        ydv.inputAsync(data, w, h);
-    }
 }
