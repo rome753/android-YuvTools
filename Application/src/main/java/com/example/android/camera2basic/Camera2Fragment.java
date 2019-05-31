@@ -28,7 +28,7 @@ public class Camera2Fragment extends Camera2BasicFragment {
 
     @Override
     protected void handleImage(ImageReader reader) {
-        ydv.inputAsync(reader);
+        ydv.input(reader);
     }
 
 

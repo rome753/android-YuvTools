@@ -13,35 +13,39 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class YUVTools {
-    
-    public static void rotateP(byte[] data, byte[] rotated, int w, int h, int rotation) {
+
+    /******************************* YUV420旋转算法 *******************************/
+
+    // I420或YV12顺时针旋转
+    public static void rotateP(byte[] src, byte[] dest, int w, int h, int rotation) {
         switch (rotation) {
             case 0:
                 break;
             case 90:
-                rotateP90(data, rotated, w, h);
+                rotateP90(src, dest, w, h);
                 break;
             case 180:
-                rotateP180(data, rotated, w, h);
+                rotateP180(src, dest, w, h);
                 break;
             case 270:
-                rotateP270(data, rotated, w, h);
+                rotateP270(src, dest, w, h);
                 break;
         }
     }
 
-    public static void rotateSP(byte[] data, byte[] rotated, int w, int h, int rotation) {
+    // NV21或NV12顺时针旋转
+    public static void rotateSP(byte[] src, byte[] dest, int w, int h, int rotation) {
         switch (rotation) {
             case 0:
                 break;
             case 90:
-                rotateSP90(data, rotated, w, h);
+                rotateSP90(src, dest, w, h);
                 break;
             case 180:
-                rotateSP180(data, rotated, w, h);
+                rotateSP180(src, dest, w, h);
                 break;
             case 270:
-                rotateSP270(data, rotated, w, h);
+                rotateSP270(src, dest, w, h);
                 break;
         }
     }
@@ -173,6 +177,8 @@ public class YUVTools {
         }
     }
 
+    /******************************* YUV420格式相互转换算法 *******************************/
+
     public static void i420ToNv21(byte[] src, byte[] dest, int w, int h) {
         int pos = w * h;
         int u = pos;
@@ -208,16 +214,100 @@ public class YUVTools {
         }
     }
 
-    public static Bitmap nv21ToBitmap(byte[] data, int w, int h) {
-        final YuvImage image = new YuvImage(data, ImageFormat.NV21, w, h, null);
-        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
-        if (image.compressToJpeg(new Rect(0, 0, w, h), 100, os)) {
-            byte[] tmp = os.toByteArray();
-            return BitmapFactory.decodeByteArray(tmp, 0, tmp.length);
-        }
-        return null;
+
+    /******************************* YUV420转换Bitmap算法 *******************************/
+
+    // 此方法虽然是官方的，但是耗时是下面方法的两倍
+//    public static Bitmap nv21ToBitmap(byte[] data, int w, int h) {
+//        final YuvImage image = new YuvImage(data, ImageFormat.NV21, w, h, null);
+//        ByteArrayOutputStream os = new ByteArrayOutputStream(data.length);
+//        if (image.compressToJpeg(new Rect(0, 0, w, h), 100, os)) {
+//            byte[] tmp = os.toByteArray();
+//            return BitmapFactory.decodeByteArray(tmp, 0, tmp.length);
+//        }
+//        return null;
+//    }
+
+    public static Bitmap nv12ToBitmap(byte[] data, int w, int h) {
+        return spToBitmap(data, w, h, 0, 1);
     }
 
+    public static Bitmap nv21ToBitmap(byte[] data, int w, int h) {
+        return spToBitmap(data, w, h, 1, 0);
+    }
+
+    private static Bitmap spToBitmap(byte[] data, int w, int h, int uOff, int vOff) {
+        int plane = w * h;
+        int[] colors = new int[plane];
+        int yPos = 0, uvPos = plane;
+        for(int j = 0; j < h; j++) {
+            for(int i = 0; i < w; i++) {
+                // YUV byte to RGB int
+                final int y1 = data[yPos] & 0xff;
+                final int u = (data[uvPos + uOff] & 0xff) - 128;
+                final int v = (data[uvPos + vOff] & 0xff) - 128;
+                final int y1192 = 1192 * y1;
+                int r = (y1192 + 1634 * v);
+                int g = (y1192 - 833 * v - 400 * u);
+                int b = (y1192 + 2066 * u);
+
+                r = (r < 0) ? 0 : ((r > 262143) ? 262143 : r);
+                g = (g < 0) ? 0 : ((g > 262143) ? 262143 : g);
+                b = (b < 0) ? 0 : ((b > 262143) ? 262143 : b);
+                colors[yPos] = ((r << 6) & 0xff0000) |
+                        ((g >> 2) & 0xff00) |
+                        ((b >> 10) & 0xff);
+
+                if((yPos++ & 1) == 1) uvPos += 2;
+            }
+            if((j & 1) == 0) uvPos -= w;
+        }
+        return Bitmap.createBitmap(colors, w, h, Bitmap.Config.RGB_565);
+    }
+
+    public static Bitmap i420ToBitmap(byte[] data, int w, int h) {
+        return pToBitmap(data, w, h, true);
+    }
+
+    public static Bitmap yv12ToBitmap(byte[] data, int w, int h) {
+        return pToBitmap(data, w, h, false);
+    }
+
+    private static Bitmap pToBitmap(byte[] data, int w, int h, boolean uv) {
+        int plane = w * h;
+        int[] colors = new int[plane];
+        int off = plane >> 2;
+        int yPos = 0, uPos = plane + (uv ? 0 : off), vPos = plane + (uv ? off : 0);
+        for(int j = 0; j < h; j++) {
+            for(int i = 0; i < w; i++) {
+                // YUV byte to RGB int
+                final int y1 = data[yPos] & 0xff;
+                final int u = (data[uPos] & 0xff) - 128;
+                final int v = (data[vPos] & 0xff) - 128;
+                final int y1192 = 1192 * y1;
+                int r = (y1192 + 1634 * v);
+                int g = (y1192 - 833 * v - 400 * u);
+                int b = (y1192 + 2066 * u);
+
+                r = (r < 0) ? 0 : ((r > 262143) ? 262143 : r);
+                g = (g < 0) ? 0 : ((g > 262143) ? 262143 : g);
+                b = (b < 0) ? 0 : ((b > 262143) ? 262143 : b);
+                colors[yPos] = ((r << 6) & 0xff0000) |
+                        ((g >> 2) & 0xff00) |
+                        ((b >> 10) & 0xff);
+
+                if((yPos++ & 1) == 1) {
+                    uPos++;
+                    vPos++;
+                }
+            }
+            if((j & 1) == 0) {
+                uPos -= (w >> 1);
+                vPos -= (w >> 1);
+            }
+        }
+        return Bitmap.createBitmap(colors, w, h, Bitmap.Config.RGB_565);
+    }
 
     public static int[] planesToColors(Image.Plane[] planes, int height) {
         ByteBuffer yPlane = planes[0].getBuffer();
@@ -278,20 +368,29 @@ public class YUVTools {
         return rgbBuffer;
     }
 
-    public static byte[] getImageBytes(Image.Plane[] planes) {
-        int len = 0;
-        for (Image.Plane plane : planes) {
-            len += plane.getBuffer().remaining();
+    /**
+     * 从ImageReader中获取byte[]数据
+     */
+    public static byte[] getBytesFromImageReader(ImageReader imageReader) {
+        try (Image image = imageReader.acquireNextImage()) {
+            final Image.Plane[] planes = image.getPlanes();
+            int len = 0;
+            for (Image.Plane plane : planes) {
+                len += plane.getBuffer().remaining();
+            }
+            byte[] bytes = new byte[len];
+            int off = 0;
+            for (Image.Plane plane : planes) {
+                ByteBuffer buffer = plane.getBuffer();
+                int remain = buffer.remaining();
+                buffer.get(bytes, off, remain);
+                off += remain;
+            }
+            return bytes;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        byte[] bytes = new byte[len];
-        int off = 0;
-        for (Image.Plane plane : planes) {
-            ByteBuffer buffer = plane.getBuffer();
-            int remain = buffer.remaining();
-            buffer.get(bytes, off, remain);
-            off += remain;
-        }
-        return bytes;
+        return null;
     }
 
     static {
