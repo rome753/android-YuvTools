@@ -11,6 +11,7 @@ import android.media.ImageReader;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class YUVTools {
 
@@ -402,4 +403,11 @@ public class YUVTools {
     public static native void yv12ToNv21cpp(byte[] src, byte[] dest, int width, int height);
 
     public static native void nv12ToNv21cpp(byte[] src, byte[] dest, int width, int height);
+
+    public static HashMap<Integer, String> yuv420map = new HashMap<>();
+    static {
+        yuv420map.put(ImageFormat.YUV_420_888, "YUV_420_888");
+        yuv420map.put(ImageFormat.NV21, "NV21");
+        yuv420map.put(ImageFormat.YV12, "YV12");
+    }
 }

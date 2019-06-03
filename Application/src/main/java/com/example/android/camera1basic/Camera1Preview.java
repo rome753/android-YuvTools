@@ -2,24 +2,19 @@ package com.example.android.camera1basic;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import java.io.IOException;
 import java.util.List;
-
-import cc.rome753.yuvtools.YUVDetectView;
 
 /**
  * A simple wrapper around a Camera and a SurfaceView that renders a centered preview of the Camera
@@ -179,13 +174,19 @@ public class Camera1Preview extends FrameLayout implements SurfaceHolder.Callbac
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         // Now that the size is known, set up the camera parameters and begin
         // the preview.
+//        setImageFormat();
+        ((Camera1Activity)getContext()).checkFirst();
+    }
+
+    public void setImageFormat(final int imageFormat) {
+        mCamera.stopPreview();
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width, mPreviewSize.height);
         List<Integer> supportedPreviewFormats = parameters.getSupportedPreviewFormats();
         for(int i : supportedPreviewFormats) {
             Log.d("chao", "supportedPreviewFormats 0x" + Integer.toHexString(i));
         }
-        parameters.setPreviewFormat(ImageFormat.YV12);
+        parameters.setPreviewFormat(imageFormat);
         requestLayout();
 
         mCamera.setParameters(parameters);

@@ -21,10 +21,19 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.example.android.camera2basic.R;
 
+import java.util.List;
+
 import cc.rome753.yuvtools.YUVDetectView;
+import cc.rome753.yuvtools.YUVTools;
+
+import static cc.rome753.yuvtools.YUVTools.yuv420map;
 
 // Need the following import to get access to the app resources, since this
 // class is in a sub-package.
@@ -34,6 +43,7 @@ import cc.rome753.yuvtools.YUVDetectView;
 public class Camera1Activity extends AppCompatActivity implements Camera.PreviewCallback {
     private Camera1Preview mPreview;
     private YUVDetectView ydv;
+    private RadioGroup rg;
     Camera mCamera;
     int numberOfCameras;
     int cameraCurrentlyLocked;
@@ -54,6 +64,7 @@ public class Camera1Activity extends AppCompatActivity implements Camera.Preview
         // and set it as the content of our activity.
         mPreview = findViewById(R.id.surface);
         ydv = findViewById(R.id.ydv);
+        rg = findViewById(R.id.rg);
 
         // Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
@@ -77,8 +88,38 @@ public class Camera1Activity extends AppCompatActivity implements Camera.Preview
         mCamera = Camera.open();
         mCamera.setPreviewCallback(this);
         mCamera.setDisplayOrientation(90);
+        initFormats();
         cameraCurrentlyLocked = defaultCameraId;
         mPreview.setCamera(mCamera);
+    }
+
+    private void initFormats() {
+        List<Integer> supportedPreviewFormats = mCamera.getParameters().getSupportedPreviewFormats();
+        if(rg.getChildCount() > 0) return;
+        rg.removeAllViews();
+        int id = 0;
+        for(int i : supportedPreviewFormats) {
+            if(yuv420map.containsKey(i)) {
+                RadioButton rb = new RadioButton(this);
+                rb.setText(yuv420map.get(i));
+                rb.setTag(i);
+                rb.setId(id++);
+                rg.addView(rb);
+            }
+        }
+        rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                RadioButton rb = (RadioButton) group.getChildAt(checkedId);
+                Log.d("chao", rb == null ? "null" : rb.getText().toString());
+                int imageFormat = (int) rb.getTag();
+                mPreview.setImageFormat(imageFormat);
+            }
+        });
+    }
+
+    public void checkFirst() {
+        if(rg.getChildCount() > 0) ((RadioButton)rg.getChildAt(0)).setChecked(true);
     }
 
     @Override
@@ -135,6 +176,7 @@ public class Camera1Activity extends AppCompatActivity implements Camera.Preview
         final int h = size.height;
         ydv.inputAsync(data, w, h);
     }
+
 }
 
 // ----------------------------------------------------------------------
