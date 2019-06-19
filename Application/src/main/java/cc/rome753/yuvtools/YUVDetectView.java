@@ -22,6 +22,7 @@ public class YUVDetectView extends FrameLayout {
     boolean isFlip = false;
     boolean isShowing = false;
     int rotation = 0;
+    byte[] buf;
 
     public YUVDetectView(@NonNull Context context) {
         this(context, null);
@@ -85,20 +86,22 @@ public class YUVDetectView extends FrameLayout {
     private void displayImage(byte[] data, int w, int h) {
         long time = System.currentTimeMillis();
 
-        byte[] rotated = rotation == 0 ? data : new byte[data.length];
+        if(buf == null) {
+            buf = new byte[data.length];
+        }
         int rw = rotation % 180 == 0 ? w : h, rh = rotation % 180 == 0 ? h : w; // rotated
 
-        YUVTools.rotateP(data, rotated, w, h, rotation);
-        final Bitmap b0 = YUVTools.i420ToBitmap(rotated, rw, rh);
+        YUVTools.rotateP(data, buf, w, h, rotation);
+        final Bitmap b0 = YUVTools.i420ToBitmap(buf, rw, rh);
 
-        YUVTools.rotateP(data, rotated, w, h, rotation);
-        final Bitmap b1 = YUVTools.yv12ToBitmap(rotated, rw, rh);
+        YUVTools.rotateP(data, buf, w, h, rotation);
+        final Bitmap b1 = YUVTools.yv12ToBitmap(buf, rw, rh);
 
-        YUVTools.rotateSP(data, rotated, w, h, rotation);
-        final Bitmap b2 = YUVTools.nv12ToBitmap(rotated, rw, rh);
+        YUVTools.rotateSP(data, buf, w, h, rotation);
+        final Bitmap b2 = YUVTools.nv12ToBitmap(buf, rw, rh);
 
-        YUVTools.rotateSP(data, rotated, w, h, rotation);
-        final Bitmap b3 = YUVTools.nv21ToBitmap(rotated, rw, rh);
+        YUVTools.rotateSP(data, buf, w, h, rotation);
+        final Bitmap b3 = YUVTools.nv21ToBitmap(buf, rw, rh);
 
         time = System.currentTimeMillis() - time;
         Log.d("YUVDetectView", "convert time: " + time);
