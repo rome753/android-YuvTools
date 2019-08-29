@@ -2,9 +2,8 @@ package cc.rome753.yuvtools;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.media.Image;
 import android.media.ImageReader;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +11,9 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.example.android.camera2basic.R;
 
@@ -63,6 +65,15 @@ public class YUVDetectView extends FrameLayout {
         final int w = isFlip ? imageReader.getHeight() : imageReader.getWidth();
         final int h = isFlip ? imageReader.getWidth() : imageReader.getHeight();
         final byte[] bytes = YUVTools.getBytesFromImageReader(imageReader);
+        if(bytes != null) {
+            displayImage(bytes, w, h);
+        }
+    }
+
+    public void input(final Image image) {
+        final int w = isFlip ? image.getHeight() : image.getWidth();
+        final int h = isFlip ? image.getWidth() : image.getHeight();
+        final byte[] bytes = YUVTools.getBytesFromImage(image);
         if(bytes != null) {
             displayImage(bytes, w, h);
         }

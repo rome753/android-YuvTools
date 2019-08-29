@@ -401,25 +401,29 @@ public class YUVTools {
      */
     public static byte[] getBytesFromImageReader(ImageReader imageReader) {
         try (Image image = imageReader.acquireNextImage()) {
-            final Image.Plane[] planes = image.getPlanes();
-            ByteBuffer b0 = planes[0].getBuffer();
-            ByteBuffer b1 = planes[1].getBuffer();
-            ByteBuffer b2 = planes[2].getBuffer();
-            int y = b0.remaining(), u = y >> 2, v = u;
-            byte[] bytes = new byte[y + u + v];
-            if(b1.remaining() > u) { // y420sp
-                b0.get(bytes, 0, b0.remaining());
-                b1.get(bytes, y, b1.remaining()); // uv
-            } else { // y420p
-                b0.get(bytes, 0, b0.remaining());
-                b1.get(bytes, y, b1.remaining()); // u
-                b2.get(bytes, y + u, b2.remaining()); // v
-            }
-            return bytes;
+            return getBytesFromImage(image);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static byte[] getBytesFromImage(Image image) {
+        final Image.Plane[] planes = image.getPlanes();
+        ByteBuffer b0 = planes[0].getBuffer();
+        ByteBuffer b1 = planes[1].getBuffer();
+        ByteBuffer b2 = planes[2].getBuffer();
+        int y = b0.remaining(), u = y >> 2, v = u;
+        byte[] bytes = new byte[y + u + v];
+        if(b1.remaining() > u) { // y420sp
+            b0.get(bytes, 0, b0.remaining());
+            b1.get(bytes, y, b1.remaining()); // uv
+        } else { // y420p
+            b0.get(bytes, 0, b0.remaining());
+            b1.get(bytes, y, b1.remaining()); // u
+            b2.get(bytes, y + u, b2.remaining()); // v
+        }
+        return bytes;
     }
 
     static {

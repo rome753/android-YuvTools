@@ -1,13 +1,15 @@
 package cc.rome753.yuvtools;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android.camera1basic.Camera1Activity;
 import com.example.android.camera2basic.Camera2Activity;
 import com.example.android.camera2basic.R;
+import com.example.android.camerax.CameraXActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,5 +25,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void click2(View v) {
         startActivity(new Intent(this, Camera2Activity.class));
+    }
+
+    public void click3(View v) {
+        startActivity(new Intent(this, CameraXActivity.class));
     }
 }
