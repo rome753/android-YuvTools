@@ -112,7 +112,7 @@ public class CameraXActivity extends AppCompatActivity {
         ImageAnalysisConfig imageAnalysisConfig = new ImageAnalysisConfig.Builder()
                 .setCallbackHandler(new Handler(handlerThread.getLooper()))
                 .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
-//                .setTargetAspectRatio(new Rational(2, 3))
+                .setTargetAspectRatio(new Rational(1, 1))
 //                .setTargetResolution(new Size(600, 600))
                 .build();
 

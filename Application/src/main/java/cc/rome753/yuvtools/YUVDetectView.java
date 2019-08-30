@@ -62,20 +62,20 @@ public class YUVDetectView extends FrameLayout {
     }
 
     public void input(final ImageReader imageReader) {
-        final int w = isFlip ? imageReader.getHeight() : imageReader.getWidth();
-        final int h = isFlip ? imageReader.getWidth() : imageReader.getHeight();
-        final byte[] bytes = YUVTools.getBytesFromImageReader(imageReader);
-        if(bytes != null) {
-            displayImage(bytes, w, h);
+        final ImageBytes imageBytes = YUVTools.getBytesFromImageReader(imageReader);
+        if(imageBytes != null) {
+            final int w = isFlip ? imageBytes.height : imageBytes.width;
+            final int h = isFlip ? imageBytes.width : imageBytes.height;
+            displayImage(imageBytes.bytes, w, h);
         }
     }
 
     public void input(final Image image) {
-        final int w = isFlip ? image.getHeight() : image.getWidth();
-        final int h = isFlip ? image.getWidth() : image.getHeight();
-        final byte[] bytes = YUVTools.getBytesFromImage(image);
-        if(bytes != null) {
-            displayImage(bytes, w, h);
+        final ImageBytes imageBytes = YUVTools.getBytesFromImage(image);
+        if(imageBytes != null) {
+            final int w = isFlip ? imageBytes.height : imageBytes.width;
+            final int h = isFlip ? imageBytes.width : imageBytes.height;
+            displayImage(imageBytes.bytes, w, h);
         }
     }
 

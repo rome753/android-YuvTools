@@ -399,7 +399,7 @@ public class YUVTools {
     /**
      * 从ImageReader中获取byte[]数据
      */
-    public static byte[] getBytesFromImageReader(ImageReader imageReader) {
+    public static ImageBytes getBytesFromImageReader(ImageReader imageReader) {
         try (Image image = imageReader.acquireNextImage()) {
             return getBytesFromImage(image);
         } catch (Exception e) {
@@ -408,22 +408,42 @@ public class YUVTools {
         return null;
     }
 
-    public static byte[] getBytesFromImage(Image image) {
+    public static ImageBytes getBytesFromImage(Image image) {
         final Image.Plane[] planes = image.getPlanes();
-        ByteBuffer b0 = planes[0].getBuffer();
-        ByteBuffer b1 = planes[1].getBuffer();
-        ByteBuffer b2 = planes[2].getBuffer();
-        int y = b0.remaining(), u = y >> 2, v = u;
+
+        Image.Plane p0 = planes[0];
+        Image.Plane p1 = planes[1];
+        Image.Plane p2 = planes[2];
+
+        ByteBuffer b0 = p0.getBuffer();
+        ByteBuffer b1 = p1.getBuffer();
+        ByteBuffer b2 = p2.getBuffer();
+
+        int r0 = b0.remaining();
+        int r1 = b1.remaining();
+        int r2 = b2.remaining();
+
+        int w0 = p0.getRowStride();
+        int h0 = r0 / w0;
+        if(r0 % w0 > 0) h0++;
+        int w1 = p1.getRowStride();
+        int h1 = r1 / w1;
+        if(r1 % w1 > 1) h1++;
+        int w2 = p2.getRowStride();
+        int h2 = r2 / w2;
+        if(r2 % w2 > 2) h2++;
+
+        int y = w0 * h0;
+        int u = w1 * h1;
+        int v = w2 * h2;
+
         byte[] bytes = new byte[y + u + v];
-        if(b1.remaining() > u) { // y420sp
-            b0.get(bytes, 0, b0.remaining());
-            b1.get(bytes, y, b1.remaining()); // uv
-        } else { // y420p
-            b0.get(bytes, 0, b0.remaining());
-            b1.get(bytes, y, b1.remaining()); // u
-            b2.get(bytes, y + u, b2.remaining()); // v
-        }
-        return bytes;
+
+        b0.get(bytes, 0, r0);
+        b1.get(bytes, y, r1); // u
+        b2.get(bytes, y + u, r2); // v
+
+        return new ImageBytes(bytes, w0, h0);
     }
 
     static {
