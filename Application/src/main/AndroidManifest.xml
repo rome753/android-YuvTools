@@ -12,7 +12,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/MaterialTheme">
-        <activity android:name="cc.rome753.yuvtools.MainActivity">
+        <activity android:name="cc.rome753.yuvtools.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
